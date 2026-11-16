@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Patch ARM9 binary to eliminate white screen crash and repack NDS ROM.
+Patch ARM9 binary to eliminate white screen crash and deadlock, then repack NDS ROM.
 """
 import struct
 import subprocess
@@ -12,7 +12,29 @@ def main():
     with open("/tmp/arm9.bin", "rb") as f:
         data = bytearray(f.read())
 
-    # 1. Assemble safe hardware VCOUNT VBlank wait routine at 0x2026dd0 (offset 0x26dd0)
+    # 1. Entrypoint jump at 0x02000000 -> 0x02000800 (b 0x2000800)
+    data[0:4] = b"\xfe\x01\x00\xea"
+    print("[NDS Fixer] 1. Injected branch at 0x02000000 -> 0x02000800")
+
+    # 2. Patch IPC_SYNC handshake at 0x02000A44 to bx lr (1e ff 2f e1)
+    # Eliminates ARM9 <-> ARM7 IPC deadlock where ARM9 spins forever waiting for ARM7
+    off_ipc = 0x02000A44 - 0x02000000
+    data[off_ipc:off_ipc + 4] = b"\x1e\xff\x2f\xe1"
+    print("[NDS Fixer] 2. Patched IPC_SYNC deadlock at 0x02000A44 to 'bx lr'")
+
+    # 3. Patch FIFO sound channel wait at 0x0200E4B4 to bx lr (70 47)
+    # Eliminates sound spinlock waiting for ARM7 FIFO before main
+    off_snd = 0x0200E4B4 - 0x02000000
+    data[off_snd:off_snd + 2] = b"\x70\x47"
+    print("[NDS Fixer] 3. Patched sound channel spinlock at 0x0200E4B4 to 'bx lr'")
+
+    # 4. Patch __libc_init_array at 0x0200E786 to nop; nop (c0 46 c0 46)
+    # Bypasses constructor array walk that jumps into uninitialized BSS
+    off_init = 0x0200E786 - 0x02000000
+    data[off_init:off_init + 4] = b"\xc0\x46\xc0\x46"
+    print("[NDS Fixer] 4. Patched __libc_init_array call at 0x0200E786 to nop; nop")
+
+    # 5. Assemble safe hardware VCOUNT VBlank wait routine at 0x2026dd0 (offset 0x26dd0)
     ks_arm = Ks(KS_ARCH_ARM, KS_MODE_ARM)
     vblank_code = """
     mov r0, #0x04000000
@@ -30,20 +52,20 @@ def main():
     vblank_bytes, _ = ks_arm.asm(vblank_code, 0x2026dd0)
     vblank_offset = 0x2026dd0 - 0x2000000
     data[vblank_offset:vblank_offset + len(vblank_bytes)] = bytes(vblank_bytes)
-    print(f"[NDS Fixer] Injected safe hardware VBlank routine at 0x2026dd0 ({len(vblank_bytes)} bytes)")
+    print(f"[NDS Fixer] 5. Injected safe hardware VBlank routine at 0x2026dd0 ({len(vblank_bytes)} bytes)")
 
-    # 2. Patch veneer target at 0x202056c from 0x010004D4 to 0x02026dd0
+    # 6. Patch veneer target at 0x202056c from 0x010004D4 to 0x02026dd0
     target_offset = 0x202056c - 0x2000000
     old_target = struct.unpack("<I", data[target_offset:target_offset + 4])[0]
     data[target_offset:target_offset + 4] = struct.pack("<I", 0x02026dd0)
-    print(f"[NDS Fixer] Patched veneer at 0x202056c: 0x{old_target:08X} -> 0x02026DD0")
+    print(f"[NDS Fixer] 6. Patched veneer at 0x202056c: 0x{old_target:08X} -> 0x02026DD0")
 
-    # 3. Patch scan_sd_card at 0x0200A7B8 to skip blocking FAT access on boot
+    # 7. Patch scan_sd_card at 0x0200A7B8 to skip blocking FAT access on boot
     ks_thumb = Ks(KS_ARCH_ARM, KS_MODE_THUMB)
     branch_bytes, _ = ks_thumb.asm("b 0x200a97c", 0x200a7b8)
     branch_offset = 0x200a7b8 - 0x2000000
     data[branch_offset:branch_offset + len(branch_bytes)] = bytes(branch_bytes)
-    print(f"[NDS Fixer] Patched boot SD scan at 0x200a7b8 to non-blocking exit")
+    print(f"[NDS Fixer] 7. Patched boot SD scan at 0x200a7b8 to non-blocking exit")
 
     # Save patched arm9.bin
     patched_arm9_path = "/tmp/arm9_patched.bin"
@@ -51,13 +73,7 @@ def main():
         f.write(data)
     print("[NDS Fixer] Saved patched ARM9 binary to /tmp/arm9_patched.bin")
 
-    # Verify disassembly
-    md_arm = Cs(CS_ARCH_ARM, CS_MODE_ARM)
-    print("\n[NDS Fixer] Disassembly of injected routine:")
-    for inst in md_arm.disasm(bytes(vblank_bytes), 0x2026dd0):
-        print(f"  0x{inst.address:08X}: {inst.mnemonic}\t{inst.op_str}")
-
-    # 4. Repack Deltarune.nds using ndstool
+    # 8. Repack Deltarune.nds using ndstool
     print("\n[NDS Fixer] Repacking Deltarune.nds with ndstool...")
     ndstool = "/tmp/blocksds-sdk/tools/ndstool/ndstool"
     cmd = [
