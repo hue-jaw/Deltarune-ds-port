@@ -4,12 +4,14 @@
 #include <nds.h>
 
 typedef enum {
-    TITLE_CHOICE_NONE = -1,
-    TITLE_CHOICE_STORY = 0,
-    TITLE_CHOICE_FIELD = 1,
+    TITLE_CHOICE_NONE   = -1,
+    TITLE_CHOICE_STORY  = 0,
+    TITLE_CHOICE_FIELD  = 1,
     TITLE_CHOICE_LANCER = 2,
-    TITLE_CHOICE_JEVIL = 3,
-    TITLE_CHOICE_LEGEND = 4
+    TITLE_CHOICE_KROUND = 3,
+    TITLE_CHOICE_KING   = 4,
+    TITLE_CHOICE_JEVIL  = 5,
+    TITLE_CHOICE_LEGEND = 6
 } TitleChoice;
 
 void title_screen_init(void);

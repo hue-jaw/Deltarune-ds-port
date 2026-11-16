@@ -15,7 +15,6 @@ typedef enum {
 } GameMode;
 
 int main(void) {
-    // Initialize hardware systems
     renderer_init();
     sound_manager_init();
     dialogue_init();
@@ -45,6 +44,12 @@ int main(void) {
                 } else if (choice == TITLE_CHOICE_LANCER) {
                     mode = GAME_STATE_BATTLE;
                     battle_init(BATTLE_ENEMY_LANCER);
+                } else if (choice == TITLE_CHOICE_KROUND) {
+                    mode = GAME_STATE_BATTLE;
+                    battle_init(BATTLE_ENEMY_KROUND);
+                } else if (choice == TITLE_CHOICE_KING) {
+                    mode = GAME_STATE_BATTLE;
+                    battle_init(BATTLE_ENEMY_KING);
                 } else if (choice == TITLE_CHOICE_JEVIL) {
                     mode = GAME_STATE_BATTLE;
                     battle_init(BATTLE_ENEMY_JEVIL);
@@ -67,7 +72,6 @@ int main(void) {
             }
 
             case GAME_STATE_OVERWORLD: {
-                // If SELECT pressed, quick return to title
                 if (keys_down & KEY_SELECT) {
                     mode = GAME_STATE_TITLE;
                     title_screen_init();
@@ -86,7 +90,6 @@ int main(void) {
             }
 
             case GAME_STATE_BATTLE: {
-                // If SELECT pressed, quick return to title
                 if (keys_down & KEY_SELECT) {
                     mode = GAME_STATE_TITLE;
                     title_screen_init();

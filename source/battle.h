@@ -6,7 +6,9 @@
 typedef enum {
     BATTLE_ENEMY_RUDINN = 0,
     BATTLE_ENEMY_LANCER = 1,
-    BATTLE_ENEMY_JEVIL  = 2
+    BATTLE_ENEMY_KROUND = 2,
+    BATTLE_ENEMY_KING   = 3,
+    BATTLE_ENEMY_JEVIL  = 4
 } BattleEnemyType;
 
 void battle_init(BattleEnemyType enemy_type);
