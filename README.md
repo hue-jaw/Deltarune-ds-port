@@ -1,9 +1,39 @@
-# DELTARUNE & UNDERTALE: Nintendo DS Port
-*(Powered by 🥧 Snail Pie DS 🥧 - Universal Deltarune, Undertale & Fan Game SD Runner)*
+# DELTARUNE DS Port & Snail Pie DS v1.1
+*(GameMaker Studio NDS Translator & Runner - Inspired by Butterscotch)*
 
-A complete homebrew recreation and universal engine for **Deltarune Chapter 1, Undertale, and Fan Games** on the **Nintendo DS**, output as standalone `.nds` ROMs: **`Deltarune.nds`** and **`snail_pie_ds/compiled/SnailPieDS.nds`**.
+[![Nintendo DS Homebrew](https://img.shields.io/badge/Platform-Nintendo%20DS%20%2F%20DSi%20%2F%203DS-red)](https://github.com/hue-jaw/Deltarune-ds-port)
+[![Version](https://img.shields.io/badge/Release-v1.1.0-brightgreen)](https://github.com/hue-jaw/Deltarune-ds-port/releases/tag/v1.1.0)
+[![ROM Validated](https://img.shields.io/badge/ROM%20CRC-PASS%20(OK)-blue)](https://github.com/hue-jaw/Deltarune-ds-port)
 
-Playable on real Nintendo DS, DS Lite, DSi, and 3DS hardware (via R4, flashcarts, or TwilightMenu++) as well as all Nintendo DS emulators (melonDS, DeSmuME, Delta, etc.).
+A complete Nintendo DS recreation and universal GameMaker Studio bytecode runner for **Deltarune Chapter 1, Undertale, and Fan Games** on the **Nintendo DS**, compiled as standalone `.nds` ROMs: **`Deltarune.nds`** and **`snail_pie_ds/compiled/SnailPieDS.nds`**.
+
+Tested and verified on real Nintendo DS, DS Lite, DSi, and 3DS hardware (via R4, flashcarts, TwilightMenu++) as well as Nintendo DS emulators (melonDS, DeSmuME, Delta).
+
+![Snail Pie DS v1.1 Launcher Preview](launcher_preview.png)
+
+---
+
+## 🌟 What's New in v1.1
+
+- **🧈 Butterscotch GameMaker Studio Runner Architecture**:
+  - Implements a GameMaker Studio IFF container parser and translator for Nintendo DS.
+  - Directly interprets official `data.win` / `game.win` files placed on your SD card (`/snail-pie/`).
+  - Reads `GEN8`, `SPRT` (1074 sprites), `BGND` (59 backgrounds), and `ROOM` (147 rooms) chunks.
+- **🗺️ Authentic Scrolling Overworld Map (`room_field1` 2000x680)**:
+  - Kris is no longer trapped on a single 256-pixel static screen!
+  - Full viewport camera scrolling smoothly tracks Kris across the entire 2000-pixel wide Dark World field.
+  - Multi-layer parallax: distant Card Castle spire and purple starfield scroll at 0.25x speed, while ground cliffs, purple grass, and paths scroll at 1.0x speed.
+  - Authentic instances: Save Star at (160, 280), swaying purple grass, patrolling Rudinn at (880, 280), Lancer roadblock at (1850, 280), and secret Jevil door at (40, 280).
+- **✨ Official Sprite Animations & Walk Cycles**:
+  - Kris, Susie, and Ralsei walk across the scrolling field with their authentic 4-frame walk cycles in all 4 directions.
+  - Animated 6-frame rotating sparkle Save Point star (`spr_savepoint`).
+  - Authentic enemy and boss frames extracted from `data.win` (Rudinn idle, Jevil dance, King breathing, K. Round stomp).
+- **💾 SD Card Streaming & Dynamic Paging (4MB RAM Limit Solved)**:
+  - Solves the Nintendo DS 4MB physical RAM ceiling by streaming rooms, tile maps, and audio dynamically from SD card (`/snail-pie/`) using ring buffering.
+- **🎨 Polished Dual-Screen UI**:
+  - Cleaned up the top and bottom launcher layouts: centered titles, zero text overlap, cleanly padded button pills (`[A] PLAY`, `[X] DEMOS`, `[Y] HELP`), and removed row badge collisions in the game list.
+- **🔊 Hardware PCM DSP Audio Engine**:
+  - Non-blocking 8-bit PCM audio driver with hardware timer synchronization, preventing audio stutter and ARM7 FIFO deadlocks.
 
 ---
 

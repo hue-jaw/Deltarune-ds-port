@@ -1,16 +1,42 @@
 #!/usr/bin/env python3
 """
-Patch ARM9 binary to eliminate white screen crash, card/IPC deadlock, and sound FIFO hang,
-then repack NDS ROM using ndstool.
+tools/fix_and_repack_nds.py
+Patch ARM9 binary for Deltarune DS Port / Snail Pie DS v1.1:
+- Eliminates white screen crash, card/IPC deadlock, and sound FIFO hang
+- Fixes UI text overlapping in launcher (centered v1.1 subtitle, clean button pills)
+- Removes row badge clash on bottom screen game list
+- Repacks Deltarune.nds and SnailPieDS.nds using ndstool
 """
+import os
+import sys
 import struct
 import subprocess
-from keystone import *
-from capstone import *
+from keystone import Ks, KS_ARCH_ARM, KS_MODE_ARM, KS_MODE_THUMB
+
+def get_ndstool():
+    repo_ndstool = os.path.join(os.path.dirname(__file__), "ndstool")
+    if os.path.isfile(repo_ndstool) and os.access(repo_ndstool, os.X_OK):
+        return repo_ndstool
+    return "ndstool"
+
+def patch_str_exact(data, old_bytes, new_str_bytes):
+    pos = data.find(old_bytes)
+    if pos == -1:
+        print(f"[NDS Fixer] Notice: string '{old_bytes}' not found (might already be patched)")
+        return False
+    padded = new_str_bytes.ljust(len(old_bytes), b"\x00")
+    if len(padded) != len(old_bytes):
+        raise ValueError(f"String replacement length mismatch: {len(padded)} vs {len(old_bytes)}")
+    data[pos:pos + len(old_bytes)] = padded
+    print(f"[NDS Fixer] String patched: {old_bytes[:15]}... -> {new_str_bytes[:15]}... at 0x{pos:08X}")
+    return True
 
 def main():
+    ndstool = get_ndstool()
+    print(f"[NDS Fixer] Using ndstool: {ndstool}")
+
     print("[NDS Fixer] Extracting components from Deltarune.nds...")
-    subprocess.run(["ndstool", "-x", "Deltarune.nds",
+    subprocess.run([ndstool, "-x", "Deltarune.nds",
                     "-9", "/tmp/arm9.bin",
                     "-7", "/tmp/arm7.bin",
                     "-t", "/tmp/banner.bin"], check=True)
@@ -18,6 +44,8 @@ def main():
     print("[NDS Fixer] Reading extracted /tmp/arm9.bin...")
     with open("/tmp/arm9.bin", "rb") as f:
         data = bytearray(f.read())
+
+    orig_len = len(data)
 
     # 1. Entrypoint jump at 0x02000000 -> 0x02000800 (b 0x2000800)
     data[0:4] = b"\xfe\x01\x00\xea"
@@ -72,14 +100,11 @@ def main():
     print(f"[NDS Fixer] 7. Patched boot SD scan at 0x200a7b8 to non-blocking exit")
 
     # 8. Patch card/IPC polling loop at 0x0200E928 to bx lr (70 47)
-    # Eliminates infinite traversal of uninitialized linked lists at 0x0200E8B8
-    # and uninitialized hardware register polling at 0x0200E9F4
     off_card = 0x0200E928 - 0x02000000
     data[off_card:off_card + 2] = b"\x70\x47"
     print("[NDS Fixer] 8. Patched card/IPC polling loop at 0x0200E928 to 'bx lr'")
 
     # 9. Patch soundPlaySample at 0x0200DBCC to movs r0, #0; bx lr (00 20 70 47)
-    # Eliminates synchronous FIFO yield to idle thread when ARM7 is desynchronized
     off_smp = 0x0200DBCC - 0x02000000
     data[off_smp:off_smp + 4] = b"\x00\x20\x70\x47"
     print("[NDS Fixer] 9. Patched soundPlaySample at 0x0200DBCC to 'movs r0, #0; bx lr'")
@@ -94,19 +119,41 @@ def main():
     data[itcm_template_off:itcm_template_off + 4] = b"\x1e\xff\x2f\xe1"
     print(f"[NDS Fixer] 11. Patched ITCM swiIntrWait template at offset 0x{itcm_template_off:08X} to 'bx lr'")
 
+    # 12. UI Polish for v1.1 GameMaker Studio Runner
+    # Centered subtitle coordinates: x=28 (0x1c), y=32 (0x20)
+    off_y = 0x0200AD68 - 0x02000000
+    data[off_y:off_y+2] = b"\x20\x22" # movs r2, #0x20
+    off_x = 0x0200AD6C - 0x02000000
+    data[off_x:off_x+2] = b"\x1c\x21" # movs r1, #0x1c
+
+    # Text strings
+    patch_str_exact(data, b"Universal Deltarune & Undertale SD Runner\x00", b"GameMaker Studio NDS v1.1\x00")
+    patch_str_exact(data, b"SD: %s (%s)\x00", b"SD: %s\x00")
+    patch_str_exact(data, b"ROOT /snail-pie/ GAMES\x00", b"ROOT /snail-pie/\x00")
+    patch_str_exact(data, b"[A] LAUNCH\x00", b"[A] PLAY\x00")
+    patch_str_exact(data, b"[X] SAMPLES\x00", b"[X] DEMOS\x00")
+    patch_str_exact(data, b"[SEL] GUIDE\x00", b"[Y] HELP\x00")
+
+    # NOP out bottom row badge draw call at 0x0200AF26 (prevents badge overlapping game title)
+    off_nop = 0x0200AF26 - 0x02000000
+    data[off_nop:off_nop+4] = b"\xc0\x46\xc0\x46"
+    print("[NDS Fixer] 12. Applied v1.1 UI cleanups & badge clash removal")
+
+    assert len(data) == orig_len, f"Binary size changed: {len(data)} != {orig_len}"
+
     # Save patched arm9.bin
     patched_arm9_path = "/tmp/arm9_patched.bin"
     with open(patched_arm9_path, "wb") as f:
         f.write(data)
     print("[NDS Fixer] Saved patched ARM9 binary to /tmp/arm9_patched.bin")
 
-    # 12. Repack Deltarune.nds using ndstool
+    # 13. Repack Deltarune.nds using ndstool
     print("\n[NDS Fixer] Repacking Deltarune.nds with ndstool...")
     cmd = [
-        "ndstool", "-c", "Deltarune.nds",
+        ndstool, "-c", "Deltarune.nds",
         "-9", patched_arm9_path,
         "-7", "/tmp/arm7.bin",
-        "-b", "icon.gif", "Deltarune Chapter 1;Nintendo DS Port;Toby Fox / DS Port"
+        "-b", "icon.gif", "Deltarune Chapter 1 v1.1;Nintendo DS Port;Toby Fox / DS Port"
     ]
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.returncode != 0:
@@ -114,11 +161,12 @@ def main():
         raise RuntimeError("ndstool failed")
 
     # Copy to SnailPieDS.nds
+    os.makedirs("snail_pie_ds/compiled", exist_ok=True)
     subprocess.run(["cp", "Deltarune.nds", "snail_pie_ds/compiled/SnailPieDS.nds"], check=True)
     print("[NDS Fixer] ✅ Deltarune.nds and SnailPieDS.nds repacked successfully!")
 
     # Verify CRCs
-    cmd_info = ["ndstool", "-i", "Deltarune.nds"]
+    cmd_info = [ndstool, "-i", "Deltarune.nds"]
     res_info = subprocess.run(cmd_info, capture_output=True, text=True)
     for line in res_info.stdout.splitlines():
         if "CRC" in line:

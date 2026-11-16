@@ -320,14 +320,14 @@ void launcher_render(void) {
     // Title banner with Snail Pie graphic
     renderer_draw_sprite(SCREEN_TOP, &spr_snail_pie, 12, 10);
     renderer_draw_text_scaled(SCREEN_TOP, 48, 10, "SNAIL PIE DS", COL_GOLD, 2);
-    renderer_draw_text(SCREEN_TOP, 50, 30, "Universal Deltarune & Undertale SD Runner", COL_CYAN);
+    renderer_draw_text(SCREEN_TOP, 28, 32, "GameMaker Studio NDS v1.1", COL_CYAN);
 
     // SD Card Status Pill
     renderer_draw_rect(SCREEN_TOP, 10, 48, 236, 20, RGB15(1, 2, 4));
     renderer_draw_rect_outline(SCREEN_TOP, 10, 48, 236, 20, fat_initialized ? COL_GREEN : COL_ORANGE, 1);
 
     char sd_status_str[64];
-    siprintf(sd_status_str, "SD: %s (%s)", fat_initialized ? "MOUNTED" : "INITIALIZING", sd_root_path);
+    siprintf(sd_status_str, "SD: %s", fat_initialized ? "MOUNTED" : "INITIALIZING");
     renderer_draw_text(SCREEN_TOP, 16, 54, sd_status_str, fat_initialized ? COL_GREEN : COL_YELLOW);
 
     char games_found_str[32];
@@ -361,7 +361,7 @@ void launcher_render(void) {
     // Header
     renderer_draw_rect(SCREEN_BOT, 8, 6, 240, 24, RGB15(2, 1, 5));
     renderer_draw_rect_outline(SCREEN_BOT, 8, 6, 240, 24, COL_GOLD, 1);
-    renderer_draw_text(SCREEN_BOT, 14, 12, "ROOT /snail-pie/ GAMES", COL_GOLD);
+    renderer_draw_text(SCREEN_BOT, 14, 12, "ROOT /snail-pie/", COL_GOLD);
     renderer_draw_text(SCREEN_BOT, 145, 12, "[TOUCH / D-PAD]", COL_GRAY);
 
     // Game Cards List (5 items visible)
@@ -382,9 +382,6 @@ void launcher_render(void) {
         }
 
         renderer_draw_text(SCREEN_BOT, 32, cy + 6, games[idx].title, is_sel ? COL_YELLOW : COL_WHITE);
-
-        // Badge pill on right
-        renderer_draw_text(SCREEN_BOT, 165, cy + 6, games[idx].badge, is_sel ? COL_CYAN : COL_GRAY);
     }
 
     // Scrollbar indicator
@@ -398,15 +395,15 @@ void launcher_render(void) {
     renderer_draw_rect(SCREEN_BOT, 0, 168, SCREEN_W, 24, RGB15(2, 2, 4));
     renderer_draw_rect(SCREEN_BOT, 6, 170, 72, 20, RGB15(4, 2, 8));
     renderer_draw_rect_outline(SCREEN_BOT, 6, 170, 72, 20, COL_YELLOW, 1);
-    renderer_draw_text(SCREEN_BOT, 12, 175, "[A] LAUNCH", COL_YELLOW);
+    renderer_draw_text(SCREEN_BOT, 12, 175, "[A] PLAY", COL_YELLOW);
 
     renderer_draw_rect(SCREEN_BOT, 82, 170, 88, 20, RGB15(2, 3, 5));
     renderer_draw_rect_outline(SCREEN_BOT, 82, 170, 88, 20, COL_CYAN, 1);
-    renderer_draw_text(SCREEN_BOT, 86, 175, "[X] SAMPLES", COL_CYAN);
+    renderer_draw_text(SCREEN_BOT, 86, 175, "[X] DEMOS", COL_CYAN);
 
     renderer_draw_rect(SCREEN_BOT, 174, 170, 76, 20, RGB15(3, 1, 3));
     renderer_draw_rect_outline(SCREEN_BOT, 174, 170, 76, 20, COL_MAGENTA, 1);
-    renderer_draw_text(SCREEN_BOT, 180, 175, "[SEL] GUIDE", COL_MAGENTA);
+    renderer_draw_text(SCREEN_BOT, 180, 175, "[Y] HELP", COL_MAGENTA);
 
     // SD Guide Popup Modal
     if (show_sd_guide) {

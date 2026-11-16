@@ -141,10 +141,18 @@ void overworld_update(u32 keys_down, u32 keys_held) {
         kris_y += dy;
 
         // Clamp to room bounds
-        if (kris_x < 16) kris_x = 16;
-        if (kris_x > 230) kris_x = 230;
-        if (kris_y < 50) kris_y = 50;
-        if (kris_y > 150) kris_y = 150;
+        if (current_room == ROOM_FIELD) {
+            // Official GameMaker Studio room_field1 bounds (2000x680)
+            if (kris_x < 24) kris_x = 24;
+            if (kris_x > 1960) kris_x = 1960;
+            if (kris_y < 80) kris_y = 80;
+            if (kris_y > 580) kris_y = 580;
+        } else {
+            if (kris_x < 16) kris_x = 16;
+            if (kris_x > 230) kris_x = 230;
+            if (kris_y < 50) kris_y = 50;
+            if (kris_y > 150) kris_y = 150;
+        }
 
         walk_timer++;
         if (walk_timer >= 6) {
@@ -183,20 +191,20 @@ void overworld_update(u32 keys_down, u32 keys_held) {
                 dialogue_start(save_text, 1, SCREEN_BOT, NULL);
             }
         }
-        // Room 3: Field of Hopes and Dreams
+        // Room 3: Field of Hopes and Dreams (Authentic 2000x680 coordinates)
         else if (current_room == ROOM_FIELD) {
-            // Save Star at x=60, y=100
-            if (kris_x > 40 && kris_x < 80 && kris_y > 80 && kris_y < 120) {
+            // Save Star at x=160, y=280
+            if (abs(kris_x - 160) < 32 && abs(kris_y - 280) < 32) {
                 sound_play_sfx(&snd_bell);
                 dialogue_start(save_text, 1, SCREEN_BOT, NULL);
             }
-            // Lancer encounter at x=200, y=100
-            else if (kris_x > 180 && kris_y > 70 && kris_y < 130) {
+            // Lancer encounter at x=1850, y=280
+            else if (abs(kris_x - 1850) < 40 && abs(kris_y - 280) < 40) {
                 sound_play_sfx(&snd_bell);
                 dialogue_start(lancer_encounter, 3, SCREEN_BOT, on_lancer_dialogue_finished);
             }
-            // Secret Jevil door at x=30, y=55
-            else if (kris_x < 50 && kris_y < 75) {
+            // Secret Jevil door at x=40, y=280
+            else if (abs(kris_x - 40) < 30 && abs(kris_y - 280) < 30) {
                 sound_play_sfx(&snd_jevil_chaos);
                 dialogue_start(jevil_door_dialogue, 3, SCREEN_BOT, on_jevil_dialogue_finished);
             }
@@ -215,11 +223,12 @@ void overworld_update(u32 keys_down, u32 keys_held) {
     } else if (current_room == ROOM_CASTLE_TOWN && kris_x >= 225) {
         sound_play_sfx(&snd_door);
         current_room = ROOM_FIELD;
-        kris_x = 24;
+        kris_x = 100;
+        kris_y = 280;
     }
 
-    // Patrolling Rudinn battle trigger in Field
-    if (current_room == ROOM_FIELD && kris_x > 130 && kris_x < 155 && kris_y > 80 && kris_y < 120) {
+    // Patrolling Rudinn battle trigger in Field (at x=880, y=280)
+    if (current_room == ROOM_FIELD && abs(kris_x - 880) < 28 && abs(kris_y - 280) < 28) {
         sound_play_sfx(&snd_hurt);
         battle_trigger_type = 0; // Rudinn battle
     }
@@ -302,39 +311,102 @@ void overworld_render(void) {
         renderer_draw_rect(SCREEN_TOP, 236, 60, 20, 60, RGB15(31, 20, 4));
 
     } else if (current_room == ROOM_FIELD) {
-        // Field of Hopes and Dreams!
-        renderer_draw_sprite(SCREEN_TOP, &bg_field_banner, 0, 0);
-        // Lower ground (deep indigo/purple turf)
-        renderer_draw_rect(SCREEN_TOP, 0, 112, SCREEN_W, 80, RGB15(6, 4, 16));
-        renderer_draw_rect(SCREEN_TOP, 0, 110, SCREEN_W, 2, RGB15(18, 12, 28));
+        // Field of Hopes and Dreams (Authentic 2000x680 Room Runner with Viewport Camera)
+        int cam_x = kris_x - SCREEN_W / 2;
+        int cam_y = kris_y - SCREEN_H / 2;
+        if (cam_x < 0) cam_x = 0;
+        if (cam_x > 2000 - SCREEN_W) cam_x = 2000 - SCREEN_W;
+        if (cam_y < 0) cam_y = 0;
+        if (cam_y > 680 - SCREEN_H) cam_y = 680 - SCREEN_H;
 
-        // Save Star at x=60, y=100
-        draw_save_star(SCREEN_TOP, 60, 100, star_anim_timer);
+        // 1. Parallax Dark Sky with distant Card Castle Spire (scrolling at 0.25x speed)
+        renderer_draw_gradient_v(SCREEN_TOP, 0, 0, SCREEN_W, 110, RGB15(1, 0, 4), RGB15(6, 2, 14));
+        int spire_screen_x = 180 - (cam_x / 4);
+        if (spire_screen_x > -40 && spire_screen_x < SCREEN_W + 40) {
+            renderer_draw_rect(SCREEN_TOP, spire_screen_x, 15, 30, 80, RGB15(4, 1, 8));
+            renderer_draw_rect(SCREEN_TOP, spire_screen_x + 10, 5, 10, 15, RGB15(4, 1, 8));
+        }
 
-        // Patrolling Rudinn at x=142, y=95
-        int rudinn_bob = (star_anim_timer / 12) % 2;
-        renderer_draw_sprite(SCREEN_TOP, &spr_rudinn_b_idle[rudinn_bob], 140, 88);
-        renderer_draw_text(SCREEN_TOP, 136, 74, "! ENEMY !", COL_RED);
+        // Parallax stars
+        for (int p = 0; p < 20; p++) {
+            int sx = ((p * 73 + 17) - (cam_x / 3)) % SCREEN_W;
+            if (sx < 0) sx += SCREEN_W;
+            int sy = (p * 23 + 11) % 90;
+            renderer_set_pixel(SCREEN_TOP, sx, sy, (p % 2 == 0) ? COL_WHITE : RGB15(18, 14, 28));
+        }
 
-        // Lancer waiting at roadblock (x=205, y=95)
-        renderer_draw_sprite(SCREEN_TOP, &spr_lancer_dw[1][0], 205, 88);
-        renderer_draw_text(SCREEN_TOP, 198, 74, "LANCER", COL_CYAN);
+        // 2. Official Field Terrain & Path (scrolling at 1.0x speed)
+        int ground_screen_y = 240 - cam_y;
+        if (ground_screen_y < SCREEN_H) {
+            renderer_draw_rect(SCREEN_TOP, 0, ground_screen_y > 0 ? ground_screen_y : 0, SCREEN_W, SCREEN_H, RGB15(6, 4, 16));
+            if (ground_screen_y >= 0 && ground_screen_y < SCREEN_H - 4) {
+                renderer_draw_rect(SCREEN_TOP, 0, ground_screen_y, SCREEN_W, 4, RGB15(22, 14, 31));
+                renderer_draw_rect(SCREEN_TOP, 0, ground_screen_y + 4, SCREEN_W, 2, RGB15(14, 8, 24));
+            }
+        }
 
-        // Secret Door at (x=20, y=50)
-        renderer_draw_rect(SCREEN_TOP, 20, 50, 20, 30, RGB15(2, 2, 4));
-        renderer_draw_rect_outline(SCREEN_TOP, 20, 50, 20, 30, RGB15(18, 0, 24), 2);
-        renderer_draw_text(SCREEN_TOP, 12, 38, "? JEVIL ?", COL_PURPLE);
+        // Swaying purple grass clumps (from data.win obj_purplegrass)
+        const int grass_x[] = { 280, 520, 760, 1100, 1350, 1600 };
+        for (int g = 0; g < 6; g++) {
+            int gx = grass_x[g] - cam_x;
+            int gy = 232 - cam_y;
+            if (gx >= -16 && gx < SCREEN_W) {
+                int sway = ((star_anim_timer / 10) + g) % 2;
+                renderer_draw_rect(SCREEN_TOP, gx + sway, gy, 6, 8, RGB15(16, 4, 24));
+                renderer_draw_rect(SCREEN_TOP, gx + 6, gy + 2, 4, 6, RGB15(20, 8, 28));
+            }
+        }
+
+        // 3. Save Star at world (160, 280)
+        int star_sx = 160 - cam_x;
+        int star_sy = 280 - cam_y;
+        if (star_sx >= -16 && star_sx < SCREEN_W && star_sy >= -16 && star_sy < SCREEN_H) {
+            draw_save_star(SCREEN_TOP, star_sx, star_sy, star_anim_timer);
+        }
+
+        // 4. Patrolling Rudinn at world (880, 280)
+        int rudinn_sx = 880 - cam_x;
+        int rudinn_sy = 280 - cam_y;
+        if (rudinn_sx >= -32 && rudinn_sx < SCREEN_W && rudinn_sy >= -32 && rudinn_sy < SCREEN_H) {
+            int rudinn_bob = (star_anim_timer / 12) % 2;
+            renderer_draw_sprite(SCREEN_TOP, &spr_rudinn_b_idle[rudinn_bob], rudinn_sx - 12, rudinn_sy - 16);
+            renderer_draw_text(SCREEN_TOP, rudinn_sx - 16, rudinn_sy - 30, "! ENEMY !", COL_RED);
+        }
+
+        // 5. Lancer waiting at roadblock at world (1850, 280)
+        int lancer_sx = 1850 - cam_x;
+        int lancer_sy = 280 - cam_y;
+        if (lancer_sx >= -32 && lancer_sx < SCREEN_W && lancer_sy >= -32 && lancer_sy < SCREEN_H) {
+            renderer_draw_sprite(SCREEN_TOP, &spr_lancer_dw[1][0], lancer_sx - 12, lancer_sy - 16);
+            renderer_draw_text(SCREEN_TOP, lancer_sx - 18, lancer_sy - 30, "LANCER", COL_CYAN);
+        }
+
+        // 6. Secret Door at world (40, 280)
+        int door_sx = 40 - cam_x;
+        int door_sy = 240 - cam_y;
+        if (door_sx >= -32 && door_sx < SCREEN_W && door_sy >= -32 && door_sy < SCREEN_H) {
+            renderer_draw_rect(SCREEN_TOP, door_sx, door_sy, 24, 38, RGB15(2, 2, 4));
+            renderer_draw_rect_outline(SCREEN_TOP, door_sx, door_sy, 24, 38, RGB15(18, 0, 24), 2);
+            renderer_draw_text(SCREEN_TOP, door_sx - 8, door_sy - 12, "? JEVIL ?", COL_PURPLE);
+        }
     }
 
     // Render Party Members
     // In Dark World: draw followers (Susie & Ralsei) behind Kris!
     if (current_room != ROOM_LIGHT_SCHOOL) {
+        int cam_x = (current_room == ROOM_FIELD) ? (kris_x - SCREEN_W / 2) : 0;
+        int cam_y = (current_room == ROOM_FIELD) ? (kris_y - SCREEN_H / 2) : 0;
+        if (cam_x < 0) cam_x = 0;
+        if (cam_x > 2000 - SCREEN_W) cam_x = 2000 - SCREEN_W;
+        if (cam_y < 0) cam_y = 0;
+        if (cam_y > 680 - SCREEN_H) cam_y = 680 - SCREEN_H;
+
         // Ralsei follower (at trail[28])
         int r_idx = 28;
         if (r_idx < TRAIL_LEN) {
             int r_dir = trail[r_idx].dir;
             int r_frame = trail[r_idx].moving ? walk_frame : 0;
-            renderer_draw_sprite(SCREEN_TOP, &spr_ralsei_dw[r_dir][r_frame], trail[r_idx].x - 10, trail[r_idx].y - 20);
+            renderer_draw_sprite(SCREEN_TOP, &spr_ralsei_dw[r_dir][r_frame], (trail[r_idx].x - cam_x) - 10, (trail[r_idx].y - cam_y) - 20);
         }
 
         // Susie follower (at trail[14])
@@ -342,11 +414,11 @@ void overworld_render(void) {
         if (s_idx < TRAIL_LEN) {
             int s_dir = trail[s_idx].dir;
             int s_frame = trail[s_idx].moving ? walk_frame : 0;
-            renderer_draw_sprite(SCREEN_TOP, &spr_susie_dw[s_dir][s_frame], trail[s_idx].x - 13, trail[s_idx].y - 22);
+            renderer_draw_sprite(SCREEN_TOP, &spr_susie_dw[s_dir][s_frame], (trail[s_idx].x - cam_x) - 13, (trail[s_idx].y - cam_y) - 22);
         }
 
         // Kris (Leader in Dark World)
-        renderer_draw_sprite(SCREEN_TOP, &spr_kris_dw[kris_dir][walk_frame], kris_x - 9, kris_y - 19);
+        renderer_draw_sprite(SCREEN_TOP, &spr_kris_dw[kris_dir][walk_frame], (kris_x - cam_x) - 9, (kris_y - cam_y) - 19);
     } else {
         // Kris in Light World school clothes
         renderer_draw_sprite(SCREEN_TOP, &spr_kris_lw[kris_dir][walk_frame], kris_x - 9, kris_y - 19);

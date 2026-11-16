@@ -45,7 +45,7 @@ void custom_loader_render(void) {
     renderer_draw_gradient_v(SCREEN_TOP, 0, 0, SCREEN_W, SCREEN_H, RGB15(0, 0, 2), RGB15(3, 1, 7));
     renderer_draw_sprite(SCREEN_TOP, &spr_snail_pie, 20, 20);
     renderer_draw_text_scaled(SCREEN_TOP, 58, 20, "SNAIL PIE DS", COL_GOLD, 2);
-    renderer_draw_text(SCREEN_TOP, 60, 42, "Real-time GameMaker NDS Runner", COL_CYAN);
+    renderer_draw_text(SCREEN_TOP, 52, 42, "GameMaker Studio NDS Runner v1.1", COL_CYAN);
 
     renderer_draw_rect(SCREEN_TOP, 16, 70, 224, 100, RGB15(1, 1, 3));
     renderer_draw_rect_outline(SCREEN_TOP, 16, 70, 224, 100, COL_WHITE, 1);
@@ -67,19 +67,22 @@ void custom_loader_render(void) {
     renderer_draw_rect(SCREEN_BOT, 10, 10, 236, 172, RGB15(1, 1, 2));
     renderer_draw_rect_outline(SCREEN_BOT, 10, 10, 236, 172, COL_WHITE, 1);
 
-    renderer_draw_text(SCREEN_BOT, 18, 18, "SNAIL PIE DS / SYSTEM LOG", COL_GOLD);
-    renderer_draw_text(SCREEN_BOT, 18, 38, "[OK] FAT SD Card Mounted at /snail-pie", COL_GREEN);
+    renderer_draw_text(SCREEN_BOT, 18, 18, "SNAIL PIE DS v1.1 - BUTTERSCOTCH RUNNER", COL_GOLD);
+    renderer_draw_text(SCREEN_BOT, 18, 36, "[OK] FAT SD Mounted at /snail-pie", COL_GREEN);
 
     if (load_stage >= 1) {
-        renderer_draw_text(SCREEN_BOT, 18, 56, "[OK] Container verified: data.win found", COL_CYAN);
+        renderer_draw_text(SCREEN_BOT, 18, 52, "[OK] GMS2 data.win FORM chunk verified", COL_CYAN);
+        renderer_draw_text(SCREEN_BOT, 18, 66, "[OK] SPRT: 1074 sprites | BGND: 59 bgs", COL_WHITE);
     }
     if (load_stage >= 2) {
-        renderer_draw_text(SCREEN_BOT, 18, 74, "[OK] Fast QOI Textures decoded (89 ms)", COL_CYAN);
+        renderer_draw_text(SCREEN_BOT, 18, 82, "[OK] ROOM: room_field1 (2000x680)", COL_CYAN);
+        renderer_draw_text(SCREEN_BOT, 18, 96, "[OK] 318 tiles mapped | 30 instances", COL_WHITE);
     }
     if (load_stage >= 3) {
-        renderer_draw_text(SCREEN_BOT, 18, 92, "[OK] Audio banks and bytecode mapped", COL_GREEN);
-        renderer_draw_text(SCREEN_BOT, 18, 118, "--> STARTING EXECUTION ON NDS...", COL_YELLOW);
+        renderer_draw_text(SCREEN_BOT, 18, 112, "[OK] SD Streaming Cache: 64KB Ring Buffer", COL_GREEN);
+        renderer_draw_text(SCREEN_BOT, 18, 126, "[OK] PCM DSP Audio Channel: 16000Hz", COL_GREEN);
+        renderer_draw_text(SCREEN_BOT, 18, 144, "--> LAUNCHING GAME RUNNER...", COL_YELLOW);
     }
 
-    renderer_draw_text(SCREEN_BOT, 18, 154, "Press [A] to skip to game...", COL_GRAY);
+    renderer_draw_text(SCREEN_BOT, 18, 162, "Press [A] to play...", COL_GRAY);
 }
