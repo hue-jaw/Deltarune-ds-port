@@ -1,0 +1,30 @@
+name: Upload Release Assets
+
+on:
+  release:
+    types: [published, created]
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Upload NDS to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          files: |
+            Deltarune.nds
+            snail_pie_ds/compiled/SnailPieDS.nds
+            snail-pie-ds-sd-template.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
