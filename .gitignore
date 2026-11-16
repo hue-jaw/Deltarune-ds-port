@@ -1,0 +1,8 @@
+build/
+*.o
+*.d
+*.elf
+*.map
+*.so
+__pycache__/
+*.pyc
