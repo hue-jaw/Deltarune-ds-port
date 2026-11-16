@@ -278,7 +278,10 @@ void renderer_draw_text_scaled(int screen, int x, int y, const char *str, u16 co
 }
 
 void renderer_present(void) {
-    swiWaitForVBlank();
+    // Safe hardware VCount wait (prevents ARM7 SWI crash on ARM9)
+    while (*(volatile u16 *)0x04000006 >= 192);
+    while (*(volatile u16 *)0x04000006 < 192);
+
     if (vram_main_ptr) {
         dmaCopyWords(3, top_buf, vram_main_ptr, SCREEN_W * SCREEN_H * 2);
     }
