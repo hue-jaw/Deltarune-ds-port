@@ -23,6 +23,10 @@ typedef enum {
 } GameMode;
 
 int main(void) {
+    powerOn(POWER_ALL_2D);
+    irqInit();
+    irqEnable(IRQ_VBLANK);
+
     renderer_init();
     sound_manager_init();
     dialogue_init();

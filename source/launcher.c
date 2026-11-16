@@ -156,11 +156,7 @@ static void scan_sd_card(void) {
         false
     );
 
-    // 2. Now check FAT SD card for /snail-pie/
-    if (!fat_initialized) {
-        fat_initialized = fatInitDefault();
-    }
-
+    // 2. Check FAT SD card for /snail-pie/ if FAT is available
     if (fat_initialized) {
         // Check drive prefixes
         const char *prefixes[] = { "/snail-pie", "sd:/snail-pie", "fat:/snail-pie" };
@@ -176,30 +172,27 @@ static void scan_sd_card(void) {
             }
         }
 
-        if (!found) {
-            strncpy(sd_root_path, "/snail-pie", sizeof(sd_root_path) - 1);
-            ensure_sd_folder_and_readme(sd_root_path);
-        }
+        if (found) {
+            DIR *dir = opendir(sd_root_path);
+            if (dir) {
+                struct dirent *ent;
+                while ((ent = readdir(dir)) != NULL) {
+                    if (ent->d_name[0] == '.') continue;
+                    if (strcmp(ent->d_name, "README.txt") == 0) continue;
 
-        DIR *dir = opendir(sd_root_path);
-        if (dir) {
-            struct dirent *ent;
-            while ((ent = readdir(dir)) != NULL) {
-                if (ent->d_name[0] == '.') continue;
-                if (strcmp(ent->d_name, "README.txt") == 0) continue;
+                    char game_title[48];
+                    siprintf(game_title, "Mod: %s", ent->d_name);
 
-                char game_title[48];
-                siprintf(game_title, "Mod: %s", ent->d_name);
+                    char full_path[64];
+                    siprintf(full_path, "%s/%s", sd_root_path, ent->d_name);
 
-                char full_path[64];
-                siprintf(full_path, "%s/%s", sd_root_path, ent->d_name);
+                    char desc[96];
+                    siprintf(desc, "SD Card game detected in %s. Ready to run on Snail Pie DS runner!", full_path);
 
-                char desc[96];
-                siprintf(desc, "SD Card game detected in %s. Ready to run on Snail Pie DS runner!", full_path);
-
-                add_game(game_title, "SD Community", full_path, "[SD CARD]", desc, LAUNCH_SD_CUSTOM, true);
+                    add_game(game_title, "SD Community", full_path, "[SD CARD]", desc, LAUNCH_SD_CUSTOM, true);
+                }
+                closedir(dir);
             }
-            closedir(dir);
         }
     }
 }
