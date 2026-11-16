@@ -1,37 +1,61 @@
-# DELTARUNE: Chapter 1 - Nintendo DS Port
-*(Powered by 🥧 Snail Pie DS 🥧 - Real-time GameMaker / Deltarune DS Runner & Compiler)*
+# DELTARUNE & UNDERTALE: Nintendo DS Port
+*(Powered by 🥧 Snail Pie DS 🥧 - Universal Deltarune, Undertale & Fan Game SD Runner)*
 
-A complete homebrew recreation of **Toby Fox's DELTARUNE Chapter 1** built specifically for the **Nintendo DS** and output as standalone `.nds` ROMs: **`Deltarune.nds`** and **`snail_pie_ds/compiled/SnailPieDS.nds`**.
+A complete homebrew recreation and universal engine for **Deltarune Chapter 1, Undertale, and Fan Games** on the **Nintendo DS**, output as standalone `.nds` ROMs: **`Deltarune.nds`** and **`snail_pie_ds/compiled/SnailPieDS.nds`**.
 
 Playable on real Nintendo DS, DS Lite, DSi, and 3DS hardware (via R4, flashcarts, or TwilightMenu++) as well as all Nintendo DS emulators (melonDS, DeSmuME, Delta, etc.).
 
 ---
 
-## 🥧 Snail Pie DS (Live GameMaker Compiler for Nintendo DS)
+## 🥧 Snail Pie DS Launcher & SD Card Support (`/snail-pie/`)
 
-**Snail Pie DS** is the Nintendo DS companion to Butterscotch!
-Drop any GameMaker or Deltarune game file (`data.win`, sprite PNGs, audio, rooms) into the `snail_pie_ds/drop/` folder and **BIM!** It compiles the Nintendo DS ROM in real time!
+When you launch Snail Pie DS, you are greeted by a gorgeous dual-screen launcher with animated Snail Pie artwork, starfield, and FAT SD card integration.
 
-### Commands
+### How to Add Any Deltarune, Undertale or Fan Game:
+1. Insert your Nintendo DS / DSi / 3DS SD card into your computer.
+2. Snail Pie DS looks for the folder named **`snail-pie`** at the **root of your SD card**:
+   ```
+   sd:/snail-pie/
+   ```
+   *(If the folder does not exist, Snail Pie DS will automatically create it on first boot or when pressing `[X]`!)*
+3. Put any Deltarune chapter, Undertale, or fan game folder or `.win` file inside:
+   ```
+   sd:/snail-pie/
+   ├── README.txt
+   ├── deltarune_ch1/       (Deltarune Chapter 1 data.win / game files)
+   ├── deltarune_ch2/       (Deltarune Chapter 2 data.win / game files)
+   ├── undertale/           (Undertale data.win / game files)
+   ├── undertale_yellow/    (Undertale Yellow fan game)
+   ├── ts_underswap/        (TS!Underswap fan game)
+   ├── disbelief_papyrus/   (Disbelief Papyrus fan game)
+   ├── sans_fight/          (Bad Time Simulator)
+   └── my_custom_game/      (Any GameMaker fan game!)
+   ```
+4. Insert your SD card back into your Nintendo DS and launch **`Deltarune.nds`** or **`SnailPieDS.nds`**.
+5. Snail Pie DS immediately lists all games found in `/snail-pie/`, lets you browse them via D-Pad or Touch Screen, and launches them!
+6. Press **`[SELECT]`** anytime in any game to return to the Snail Pie DS launcher.
 
-```bash
-# 1. Compile immediately from the drop folder
-./snail_pie_ds_run
-# or
-python3 snail_pie_ds/snail_pie_ds.py
+---
 
-# 2. Real-time Live Watcher mode
-# Watches snail_pie_ds/drop/ continuously: drop a file and BAM! Recompiles instantly!
-python3 snail_pie_ds/snail_pie_ds.py --watch
+## 🎮 Built-in Games & Encounters (Playable Out of the Box)
 
-# 3. Extract all Chapter 1 sprites directly to snail_pie_ds/extracted_sprites/
-python3 snail_pie_ds/snail_pie_ds.py --extract
-```
-
-### Folder Layout
-- `snail_pie_ds/drop/`: Drop your files here (`data.win`, `.ogg`, sprites).
-- `snail_pie_ds/extracted_sprites/`: Extracted PNG sprites from GameMaker texture pages.
-- `snail_pie_ds/compiled/`: Pre-compiled `SnailPieDS.nds`.
+Even without any files on your SD card, Snail Pie DS includes a full suite of ready-to-play games:
+1. **Deltarune: Chapter 1**
+   - Full Story Campaign (School awakening, Closet void dark fall, The Legend prophecy).
+   - Overworld Exploration (Party caterpillar with Kris, Susie, Ralsei, Save Stars, interactable NPCs).
+   - All 5 Boss Encounters: **Rudinn**, **Lancer**, **K. Round (Checker King)**, **Chaos King**, and secret boss **Jevil**!
+2. **Undertale: Ruins & Toriel Encounter**
+   - Frisk, Flowey, Toriel and Froggit battle with authentic dialogue, MERCY/ACT/ITEM/FIGHT mechanics, and heart bullet hell.
+3. **Sans Boss Fight: Bad Time Simulator**
+   - **Blue Soul Gravity Mode**: JUMP over moving bone waves with smooth gravity physics!
+   - **Gaster Blasters**: Blaster skulls spawn, open their jaws, and blast giant energy beams!
+   - **Megalovania Battle Theme**: Fast-paced battle with Karma (KR) poison drain.
+4. **Undertale Yellow: Clover Pacifist Encounter**
+   - Justice Yellow Soul aiming and shooting mechanics.
+5. **TS!Underswap: Starlight Isles Encounter**
+   - Swapped character mechanics and custom projectile patterns.
+6. **Dynamic SD Card Custom Games**:
+   - Any game placed in `sd:/snail-pie/` can be launched via the built-in GameMaker NDS runner!
 
 ---
 
