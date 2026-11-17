@@ -21,10 +21,11 @@ jobs:
       - name: Upload NDS to Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0
+          tag_name: ${{ github.event.release.tag_name || github.ref_name }}
           files: |
             Deltarune.nds
             snail_pie_ds/compiled/SnailPieDS.nds
             snail-pie-ds-sd-template.zip
+            launcher_preview.png
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
